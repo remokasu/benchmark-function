@@ -31,4 +31,4 @@ for i in range(len(function_names), 28):
     row, col = divmod(i, 4)
     fig.delaxes(axs[row, col])
 
-plt.savefig("benchmark_functions_overview.png", dpi=300)
+plt.savefig("benchmark_functions_overview.png", dpi=100)
