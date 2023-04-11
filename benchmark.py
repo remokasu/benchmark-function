@@ -33,6 +33,19 @@ class BF:
         "alpine": {"lower": [0, 0], "upper": [10, 10]},
         "xin_she_yang": {"lower": [-2 * np.pi, -2 * np.pi], "upper": [2 * np.pi, 2 * np.pi]},
         "brown": {"lower": [-1, -1], "upper": [4, 4]},
+        "langermann": {"lower": [0, 0], "upper": [10, 10]},
+        "bent_cigar": {"lower": [-100, -100], "upper": [100, 100]},
+        "katsuura": {"lower": [0, 0], "upper": [100, 100]},
+        "schaffer_n4": {"lower": [-100, -100], "upper": [100, 100]},
+        "happy_cat": {"lower": [-2, -2], "upper": [2, 2]},
+        "periodic": {"lower": [-10, -10], "upper": [10, 10]},
+        "shubert": {"lower": [-10, -10], "upper": [10, 10]},
+        "schwefel_221": {"lower": [-100, -100], "upper": [100, 100]},
+        "sum_squares": {"lower": [-10, -10], "upper": [10, 10]},
+        "powell": {"lower": [-10, -10], "upper": [10, 10]},
+        "sum_of_different_powers": {"lower": [-1, -1], "upper": [1, 1]},
+        "trid": {"lower": [-2, -5], "upper": [2, 5]},
+        "colville": {"lower": [-10, -10], "upper": [10, 10]},
         # Add more functions and their ranges here
     }
 
@@ -48,7 +61,7 @@ class BF:
 
         x0 = np.linspace(lower[0], upper[0], num_points)
         x1 = np.linspace(lower[1], upper[1], num_points)
-        y = np.array([self.calc(np.array([_x0, _x1])) for _x0 in x0 for _x1 in x1]).reshape(num_points, num_points)
+        y = np.array([self.evaluate(np.array([_x0, _x1])) for _x0 in x0 for _x1 in x1]).reshape(num_points, num_points)
 
         X0, X1 = np.meshgrid(x0, x1)
 
@@ -65,7 +78,7 @@ class BF:
         except AttributeError:
             raise ValueError(f"Invalid function name: {self.func_name}")
 
-    def calc(self, xs: np.ndarray) -> np.float64:
+    def evaluate(self, xs: np.ndarray) -> np.float64:
         try:
             func = getattr(self, f"{self.func_name}_function")
             return func(xs)
@@ -331,6 +344,127 @@ class BF:
         """
         return np.sum((xs[:-1]**2)**(xs[1:]**2 + 1) + (xs[1:]**2)**(xs[:-1]**2 + 1))
 
+    def langermann_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Langermann function.
+        Bounds: 0 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = -1.8013 (approximately) at x* = (9.6462, 9.6462)
+        """
+        m = 5
+        a = np.array([1, 2, 5, 2, 3])
+        c = np.array([1, 2, 5, 2, 3])
+        return np.sum(c * np.cos(((xs**2).reshape(-1, 1) @ a.reshape(1, -1)) * np.pi)) - m * np.prod(np.cos(xs * np.pi / 6))
+
+    def bent_cigar_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Bent Cigar function.
+        Bounds: -100 <= x_i <= 100 (for each i)
+        Global minimum: f(x*) = 0 at x* = (0, 0, ..., 0)
+        """
+        return xs[0]**2 + 1e6 * np.sum(xs[1:]**2)
+
+    def katsuura_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Katsuura function.
+        Bounds: 0 <= x_i <= 100 (for each i)
+        Global minimum: f(x*) = 1 at x* = (0, 0, ..., 0)
+        """
+        d = len(xs)
+        return 1 - np.prod([(1 + i * np.abs(xs[i - 1])**((i + 1) / d))**(10 / d**1.2) for i in range(1, d + 1)])
+
+    def schaffer_n4_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Schaffer N.4 function.
+        Bounds: -100 <= x_i <= 100 (for each i)
+        Global minimum: f(x*) = 0.292579 at x* = (0, 1.25313) or (1.25313, 0)
+        """
+        x1, x2 = xs
+        return 0.5 + (np.cos(np.sin(np.abs(x1**2 - x2**2)))**2 - 0.5) / (1 + 0.001 * (x1**2 + x2**2))**2
+
+    def happy_cat_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Happy Cat function.
+        Bounds: -2 <= x_i <= 2 (for each i)
+        Global minimum: f(x*) = 0 at x* = (-1, -1, ..., -1)
+        """
+        n = len(xs)
+        alpha = 1 / 8
+        return ((np.sum(xs**2) - n)**2)**alpha + (0.5 * np.sum(xs**2) + np.sum(xs)) / n + 0.5
+
+    def periodic_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Periodic function.
+        Bounds: -10 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = 0.9 at x* = (0, 0, ..., 0)
+        """
+        return 1 + np.sum(np.sin(xs)**2) - 0.1 * np.exp(-np.sum(xs**2))
+
+    def shubert_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Shubert function.
+        Bounds: -10 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = -186.7309 (approximately)
+        """
+        i = np.arange(1, 6)
+        return np.prod([np.sum(i * np.cos((i + 1) * x + i)) for x in xs])
+
+    def schwefel_221_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Schwefel 2.21 function.
+        Bounds: -100 <= x_i <= 100 (for each i)
+        Global minimum: f(x*) = 0 at x* = (0, 0, ..., 0)
+        """
+        return np.max(np.abs(xs))
+
+    def sum_squares_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Sum of squares function.
+        Bounds: -10 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = 0 at x* = (0, 0, ..., 0)
+        """
+        i = np.arange(1, len(xs) + 1)
+        return np.sum(i * xs ** 2)
+
+    def powell_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Powell's Quadratic Function.
+        Bounds: -10 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = 0 at x* = (0, 0, ..., 0)
+        Citation: ...
+        """
+        n = len(xs)
+        result = 0
+        for i in range(1, n, 2):
+            result += (xs[i - 1] ** 2 + 10 * xs[i] ** 2) ** 2 + 5 * (xs[i - 1] - xs[i]) ** 2 + (xs[i - 1] ** 2 + xs[i] ** 2) ** 4
+        return result
+
+    def sum_of_different_powers_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Sum of Different Powers Function.
+        Bounds: -1 <= x_i <= 1 (for each i)
+        Global minimum: f(x*) = 0 at x* = (0, 0)
+        Citation: ...
+        """
+        return np.sum([np.abs(x ** (i + 1)) for i, x in enumerate(xs)])
+
+    def trid_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Trid Function.
+        Bounds: For 2D case: -2 <= x_1 <= 2, -5 <= x_2 <= 5
+        Global minimum: f(x*) = -2 at x* = (1, 1)
+        Citation: ...
+        """
+        return np.sum([(x - 1) ** 2 for x in xs]) - np.sum([xs[i] * xs[i - 1] for i in range(1, len(xs))])
+
+    def colville_function(self, xs: np.ndarray) -> np.float64:
+        """
+        Colville Function.
+        Bounds: -10 <= x_i <= 10 (for each i)
+        Global minimum: f(x*) = 0 at x* = (1, 1)
+        Citation: https://www.sfu.ca/~ssurjano/colville.html
+        """
+        x1, x2 = xs
+        return 100 * (x1**2 - x2)**2 + (x1 - 1)**2 + (x2 - 1)**2 + 90 * (x2**2 - x1)**2
 
     ...
 
@@ -346,7 +480,7 @@ if __name__ == "__main__":
     func = BF(args.function)
 
     if args.x0 is not None and args.x1 is not None:
-        print(f"{args.function}({args.x0}, {args.x1}) = {func.calc(np.array([args.x0, args.x1]))}")
+        print(f"{args.function}({args.x0}, {args.x1}) = {func.evaluate(np.array([args.x0, args.x1]))}")
 
     func.plot(args.num_points)
 
